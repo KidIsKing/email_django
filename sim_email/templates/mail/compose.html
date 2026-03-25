@@ -1,0 +1,40 @@
+{% extends 'mail/base.html' %}
+
+{% block content %}
+    <h2>Новое письмо</h2>
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Отправитель:</label>
+            <input type="text" name="sender" required 
+                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Получатель:</label>
+            <input type="text" name="recipient" required
+                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Тема:</label>
+            <input type="text" name="subject" required
+                   style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+        </div>
+        
+        <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 5px;">Текст письма:</label>
+            <textarea name="body" rows="6" required
+                      style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;"></textarea>
+        </div>
+        
+        <button type="submit" 
+                style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 3px; cursor: pointer;">
+            Отправить
+        </button>
+        <a href="{% url 'mail:inbox' %}" 
+           style="margin-left: 10px; color: #666; text-decoration: none;">Отмена</a>
+    </form>
+{% endblock %}

@@ -1,0 +1,101 @@
+{% extends 'mail/base.html' %}
+
+{% block content %}
+    <style>
+        .email-detail {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+        
+        .email-header {
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .email-info {
+            margin-bottom: 15px;
+        }
+        
+        .email-label {
+            font-weight: bold;
+            color: #555;
+            width: 100px;
+            display: inline-block;
+        }
+        
+        .email-value {
+            color: #333;
+        }
+        
+        .email-body {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .read-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .unread-badge {
+            background: #ffc107;
+            color: #333;
+        }
+    </style>
+    
+    <div class="email-detail">
+        <div class="email-header">
+            <h2 style="margin: 0;">{{ email.subject }}</h2>
+            {% if email.is_read %}
+                <span class="read-badge">✓ Прочитано</span>
+            {% else %}
+                <span class="read-badge unread-badge">● Новое</span>
+            {% endif %}
+        </div>
+        
+        <div class="email-info">
+            <div class="email-label">Отправитель:</div>
+            <div class="email-value">{{ email.sender }}</div>
+        </div>
+        
+        <div class="email-info">
+            <div class="email-label">Получатель:</div>
+            <div class="email-value">{{ email.recipient }}</div>
+        </div>
+        
+        <div class="email-info">
+            <div class="email-label">Дата:</div>
+            <div class="email-value">{{ email.created_at|date:"d.m.Y H:i" }}</div>
+        </div>
+        
+        <div class="email-body">
+            {{ email.body|linebreaks }}
+        </div>
+        
+        <a href="{% url 'mail:inbox' %}" class="back-link">← Вернуться к списку писем</a>
+    </div>
+{% endblock %}
