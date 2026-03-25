@@ -9,4 +9,5 @@ urlpatterns = [
     path('sent/', views.sent_emails, name='sent'),
     path('compose/', views.compose, name='compose'),
     path('email/<int:email_id>/', views.view_email, name='view_email'),
+    path('signup/', views.SignUpView.as_view(), name='signup'),
 ]

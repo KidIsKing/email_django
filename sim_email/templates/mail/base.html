@@ -4,25 +4,40 @@
     <meta charset="UTF-8">
     <title>Email Client</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
             padding: 0;
-            background: #f0f0f0;
+            box-sizing: border-box;
         }
         
-        /* Контейнер с flex для левой панели */
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
         .app-container {
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
+            overflow: hidden;
         }
         
-        /* Левая панель навигации */
         .sidebar {
             width: 250px;
             background: white;
-            padding: 20px;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            position: relative;
+            flex-shrink: 0;
+        }
+        
+        .sidebar-top {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
         }
         
         .sidebar h1 {
@@ -60,9 +75,55 @@
             color: white;
         }
         
-        /* Основной контент */
+        .user-info-bottom {
+            padding: 15px;
+            background: #f5f5f5;
+            border-top: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        
+        .user-info-bottom .username {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .logout-form {
+            margin: 0;
+        }
+        
+        .logout-button {
+            background: none;
+            border: none;
+            color: #dc3545;
+            cursor: pointer;
+            padding: 0;
+            font-size: 14px;
+            text-decoration: none;
+            font-family: inherit;
+        }
+        
+        .logout-button:hover {
+            text-decoration: underline;
+        }
+        
+        .login-links {
+            text-align: center;
+        }
+        
+        .login-links a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+        
+        .login-links a:hover {
+            text-decoration: underline;
+        }
+        
         .main-content {
             flex: 1;
+            overflow-y: auto;
             padding: 20px;
         }
         
@@ -86,50 +147,58 @@
             color: #999;
         }
         
-        /* Кнопка + */
-        .add-button {
-            display: inline-block;
-            background: #007bff;
-            color: white;
-            font-size: 24px;
-            width: 40px;
-            height: 40px;
-            line-height: 40px;
-            text-align: center;
-            border-radius: 50%;
-            text-decoration: none;
-            margin-bottom: 20px;
+        /* Стили для скроллбара */
+        .sidebar-top::-webkit-scrollbar,
+        .main-content::-webkit-scrollbar {
+            width: 6px;
         }
         
-        .add-button:hover {
-            background: #0056b3;
+        .sidebar-top::-webkit-scrollbar-track,
+        .main-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
         }
         
-        .header-with-button {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        .sidebar-top::-webkit-scrollbar-thumb,
+        .main-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
         }
         
-        .header-with-button h2 {
-            margin: 0;
+        .sidebar-top::-webkit-scrollbar-thumb:hover,
+        .main-content::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <!-- Левая панель навигации -->
         <div class="sidebar">
-            <h1>📧 Моя почта</h1>
-            <ul class="nav-menu">
-                <li><a href="{% url 'mail:inbox' %}" class="{% if active_tab == 'inbox' %}active{% endif %}">📬 Непрочитанные</a></li>
-                <li><a href="{% url 'mail:read' %}" class="{% if active_tab == 'read' %}active{% endif %}">✓ Прочитанные</a></li>
-                <li><a href="{% url 'mail:sent' %}" class="{% if active_tab == 'sent' %}active{% endif %}">📤 Отправленные</a></li>
-            </ul>
+            <div class="sidebar-top">
+                <h1>📧 Моя почта</h1>
+                
+                <ul class="nav-menu">
+                    <li><a href="{% url 'mail:inbox' %}" class="{% if active_tab == 'inbox' %}active{% endif %}">📬 Непрочитанные</a></li>
+                    <li><a href="{% url 'mail:read' %}" class="{% if active_tab == 'read' %}active{% endif %}">✓ Прочитанные</a></li>
+                    <li><a href="{% url 'mail:sent' %}" class="{% if active_tab == 'sent' %}active{% endif %}">📤 Отправленные</a></li>
+                </ul>
+            </div>
+            
+            <div class="user-info-bottom">
+                {% if user.is_authenticated %}
+                    <div class="username">👤 {{ user.username }}</div>
+                    <form method="post" action="/auth/logout/">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-button">Выйти</button>
+                    </form>
+                {% else %}
+                    <div class="login-links">
+                        <a href="/auth/login/">Войти</a> | 
+                        <a href="{% url 'mail:signup' %}">Регистрация</a>
+                    </div>
+                {% endif %}
+            </div>
         </div>
         
-        <!-- Основной контент -->
         <div class="main-content">
             {% if messages %}
                 {% for message in messages %}
