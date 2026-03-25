@@ -7,37 +7,71 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             background: #f0f0f0;
         }
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
+        
+        /* Контейнер с flex для левой панели */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Левая панель навигации */
+        .sidebar {
+            width: 250px;
             background: white;
             padding: 20px;
-            border-radius: 5px;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+        
+        .sidebar h1 {
+            font-size: 20px;
+            margin: 0 0 20px 0;
             padding-bottom: 10px;
             border-bottom: 2px solid #eee;
         }
-        .header h1 {
+        
+        .nav-menu {
+            list-style: none;
+            padding: 0;
             margin: 0;
-            font-size: 24px;
         }
-        .add-link {
-            font-size: 30px;
+        
+        .nav-menu li {
+            margin-bottom: 10px;
+        }
+        
+        .nav-menu a {
+            display: block;
+            padding: 10px 15px;
             text-decoration: none;
-            color: #007bff;
-            font-weight: bold;
+            color: #333;
+            border-radius: 5px;
+            transition: background 0.3s;
         }
-        .add-link:hover {
-            color: #0056b3;
+        
+        .nav-menu a:hover {
+            background: #f0f0f0;
         }
+        
+        .nav-menu a.active {
+            background: #007bff;
+            color: white;
+        }
+        
+        /* Основной контент */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        
+        .content-card {
+            background: white;
+            border-radius: 5px;
+            padding: 20px;
+        }
+        
         .messages {
             background: #d4edda;
             color: #155724;
@@ -45,25 +79,71 @@
             margin-bottom: 20px;
             border-radius: 3px;
         }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+        
+        /* Кнопка + */
+        .add-button {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            font-size: 24px;
+            width: 40px;
+            height: 40px;
+            line-height: 40px;
+            text-align: center;
+            border-radius: 50%;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+        
+        .add-button:hover {
+            background: #0056b3;
+        }
+        
+        .header-with-button {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .header-with-button h2 {
+            margin: 0;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
+    <div class="app-container">
+        <!-- Левая панель навигации -->
+        <div class="sidebar">
             <h1>📧 Моя почта</h1>
-            <a href="{% url 'mail:compose' %}" class="add-link">+</a>
+            <ul class="nav-menu">
+                <li><a href="{% url 'mail:inbox' %}" class="{% if active_tab == 'inbox' %}active{% endif %}">📬 Непрочитанные</a></li>
+                <li><a href="{% url 'mail:read' %}" class="{% if active_tab == 'read' %}active{% endif %}">✓ Прочитанные</a></li>
+                <li><a href="{% url 'mail:sent' %}" class="{% if active_tab == 'sent' %}active{% endif %}">📤 Отправленные</a></li>
+            </ul>
         </div>
         
-        {% if messages %}
-        <div class="messages">
-            {% for message in messages %}
-                {{ message }}
-            {% endfor %}
+        <!-- Основной контент -->
+        <div class="main-content">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="messages">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="content-card">
+                {% block content %}
+                {% endblock %}
+            </div>
         </div>
-        {% endif %}
-        
-        {% block content %}
-        {% endblock %}
     </div>
 </body>
 </html>

@@ -4,10 +4,10 @@ from .models import Email
 
 class EmailForm(forms.ModelForm):
     """Форма для создания нового письма"""
-
+    
     class Meta:
         model = Email
-        fields = ("sender", "recipient", "subject", "body")
+        fields = ('sender', 'recipient', 'subject', 'body')
         widgets = {
-            "body": forms.Textarea(attrs={"rows": 6}),
+            'body': forms.Textarea(attrs={'rows': 6}),
         }
