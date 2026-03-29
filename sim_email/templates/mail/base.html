@@ -169,6 +169,7 @@
                     <li><a href="{% url 'mail:read' %}" class="{% if active_tab == 'read' %}active{% endif %}">✓ Прочитанные</a></li>
                     <li><a href="{% url 'mail:sent' %}" class="{% if active_tab == 'sent' %}active{% endif %}">📤 Отправленные</a></li>
                     <li><a href="{% url 'mail:trash' %}" class="{% if active_tab == 'trash' %}active{% endif %}">🗑️ Корзина</a></li>
+                    <li><a href="{% url 'mail:archive' %}" class="{% if active_tab == 'archive' %}active{% endif %}">📦 Архив</a></li>
                 </ul>
             </div>
             

@@ -17,9 +17,7 @@
             transition: box-shadow 0.3s ease;
             position: relative;
         }
-        .email-card:hover {
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
+        .email-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .email-sender {
             font-weight: bold;
             color: #333;
@@ -28,31 +26,10 @@
             padding-bottom: 8px;
             border-bottom: 1px solid #eee;
         }
-        .email-recipient {
-            color: #666;
-            font-size: 13px;
-            margin-bottom: 8px;
-        }
-        .email-subject {
-            font-weight: 600;
-            color: #555;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        .email-body {
-            color: #777;
-            font-size: 13px;
-            line-height: 1.4;
-            margin-bottom: 10px;
-        }
-        .email-date {
-            color: #999;
-            font-size: 11px;
-            text-align: right;
-            margin-top: 10px;
-            padding-top: 8px;
-            border-top: 1px solid #eee;
-        }
+        .email-recipient { color: #666; font-size: 13px; margin-bottom: 8px; }
+        .email-subject { font-weight: 600; color: #555; font-size: 14px; margin-bottom: 10px; }
+        .email-body { color: #777; font-size: 13px; line-height: 1.4; margin-bottom: 10px; }
+        .email-date { color: #999; font-size: 11px; text-align: right; margin-top: 10px; padding-top: 8px; border-top: 1px solid #eee; }
         .add-button {
             display: inline-block;
             background: #007bff;
@@ -65,9 +42,7 @@
             border-radius: 50%;
             text-decoration: none;
         }
-        .add-button:hover {
-            background: #0056b3;
-        }
+        .add-button:hover { background: #0056b3; }
         .header-with-button {
             display: flex;
             justify-content: space-between;
@@ -75,23 +50,23 @@
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
-        .header-with-button h2 {
-            margin: 0;
+        .action-icons {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 8px;
         }
-        .trash-btn {
+        .action-icons form { margin: 0; }
+        .action-icons button {
             background: none;
             border: none;
             cursor: pointer;
             font-size: 18px;
             opacity: 0.6;
             transition: opacity 0.2s;
-            position: absolute;
-            top: 10px;
-            right: 10px;
         }
-        .trash-btn:hover {
-            opacity: 1;
-        }
+        .action-icons button:hover { opacity: 1; }
         .pagination {
             display: flex;
             justify-content: center;
@@ -106,19 +81,8 @@
             text-decoration: none;
             color: #007bff;
         }
-        .pagination .current {
-            background: #007bff;
-            color: white;
-            border-color: #007bff;
-        }
-        .pagination .disabled {
-            color: #999;
-            cursor: not-allowed;
-        }
-        @media (max-width: 768px) {
-            .emails-grid { grid-template-columns: 1fr; }
-            .header-with-button { flex-direction: column; gap: 15px; text-align: center; }
-        }
+        .pagination .current { background: #007bff; color: white; }
+        @media (max-width: 768px) { .emails-grid { grid-template-columns: 1fr; } }
     </style>
 
     <div class="header-with-button">
@@ -137,14 +101,19 @@
                         <div class="email-body">{{ email.body|truncatechars:50 }}</div>
                         <div class="email-date">{{ email.created_at|date:"d.m.Y H:i" }}</div>
                     </a>
-                    <form method="post" action="{% url 'mail:move_to_trash' email.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="trash-btn" title="Удалить">🗑️</button>
-                    </form>
+                    <div class="action-icons">
+                        <form method="post" action="{% url 'mail:move_to_archive' email.id %}">
+                            {% csrf_token %}
+                            <button type="submit" title="Архивировать">📦</button>
+                        </form>
+                        <form method="post" action="{% url 'mail:move_to_trash' email.id %}">
+                            {% csrf_token %}
+                            <button type="submit" title="Удалить">🗑️</button>
+                        </form>
+                    </div>
                 </div>
             {% endfor %}
         </div>
-        
         <div class="pagination">
             {% if page_obj.has_previous %}
                 <a href="?page=1">« Первая</a>
@@ -163,8 +132,6 @@
             {% endif %}
         </div>
     {% else %}
-        <div class="empty-state">
-            <p>Нет непрочитанных писем</p>
-        </div>
+        <div class="empty-state"><p>Нет непрочитанных писем</p></div>
     {% endif %}
 {% endblock %}

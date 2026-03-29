@@ -54,6 +54,7 @@
             display: flex;
             gap: 15px;
             margin: 20px 0;
+            flex-wrap: wrap;
         }
         .action-buttons button {
             border: none;
@@ -65,8 +66,10 @@
         .btn-trash { background: #dc3545; color: white; }
         .btn-restore { background: #28a745; color: white; }
         .btn-delete { background: #6c757d; color: white; }
+        .btn-archive { background: #17a2b8; color: white; }
         .btn-trash:hover { background: #c82333; }
         .btn-restore:hover { background: #218838; }
+        .btn-archive:hover { background: #138496; }
     </style>
 
     <div class="email-detail">
@@ -103,7 +106,20 @@
         {% endif %}
 
         <div class="action-buttons">
-            {% if email.folder != 'trash' %}
+            {% if email.folder == 'archive' %}
+                <form method="post" action="{% url 'mail:restore_from_archive' email.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-restore">📂 Восстановить из архива</button>
+                </form>
+                <form method="post" action="{% url 'mail:move_to_trash' email.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-trash">🗑️ В корзину</button>
+                </form>
+            {% elif email.folder != 'trash' %}
+                <form method="post" action="{% url 'mail:move_to_archive' email.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-archive">📦 В архив</button>
+                </form>
                 <form method="post" action="{% url 'mail:move_to_trash' email.id %}">
                     {% csrf_token %}
                     <button type="submit" class="btn-trash">🗑️ В корзину</button>

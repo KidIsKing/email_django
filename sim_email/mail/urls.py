@@ -20,4 +20,13 @@ urlpatterns = [
         "email/<int:email_id>/delete/", views.delete_forever, name="delete_forever"
     ),  # удалить навсегда
     path("signup/", views.SignUpView.as_view(), name="signup"),
+    path("archive/", views.archive_emails, name="archive"),  # страница архива
+    path(
+        "email/<int:email_id>/archive/", views.move_to_archive, name="move_to_archive"
+    ),  # в архив
+    path(
+        "email/<int:email_id>/unarchive/",
+        views.restore_from_archive,
+        name="restore_from_archive",
+    ),  # из архива
 ]

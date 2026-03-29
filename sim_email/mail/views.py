@@ -194,3 +194,52 @@ def delete_forever(request, email_id):
 
     next_url = request.META.get("HTTP_REFERER", "mail:inbox")
     return redirect(next_url)
+
+
+@login_required
+def archive_emails(request):
+    """Архив – письма, помещённые в архив текущим пользователем"""
+    emails = Email.objects.filter(
+        folder='archive'
+    ).filter(
+        models.Q(recipient_user=request.user) | models.Q(sender_user=request.user)
+    ).order_by('-created_at')
+    paginator = Paginator(emails, 9)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'mail/archive.html', {'page_obj': page_obj, 'active_tab': 'archive'})
+
+
+@login_required
+def move_to_archive(request, email_id):
+    """Переместить письмо в архив (для текущего пользователя)"""
+    email = get_object_or_404(Email, id=email_id)
+    if email.recipient_user == request.user or email.sender_user == request.user:
+        if email.folder != "archive":
+            email.folder = "archive"
+            email.save()
+            messages.success(request, "Письмо перемещено в архив")
+        else:
+            messages.info(request, "Письмо уже в архиве")
+    else:
+        messages.error(request, "Вы не можете архивировать это письмо")
+    next_url = request.META.get("HTTP_REFERER", "mail:inbox")
+    return redirect(next_url)
+
+
+@login_required
+def restore_from_archive(request, email_id):
+    """Восстановить письмо из архива"""
+    email = get_object_or_404(Email, id=email_id, folder="archive")
+    if email.recipient_user == request.user or email.sender_user == request.user:
+        if email.recipient_user == request.user:
+            email.folder = "read"  # для получателя – в прочитанные
+            email.is_read = True
+        elif email.sender_user == request.user:
+            email.folder = "sent"  # для отправителя – в отправленные
+            email.is_read = True
+        email.save()
+        messages.success(request, "Письмо восстановлено из архива")
+    else:
+        messages.error(request, "Вы не можете восстановить это письмо")
+    return redirect("mail:archive")
