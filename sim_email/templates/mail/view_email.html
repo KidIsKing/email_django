@@ -65,6 +65,15 @@
             background: #ffc107;
             color: #333;
         }
+        
+        .info-note {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #0056b3;
+        }
     </style>
     
     <div class="email-detail">
@@ -96,6 +105,16 @@
             {{ email.body|linebreaks }}
         </div>
         
-        <a href="{% url 'mail:inbox' %}" class="back-link">← Вернуться к списку писем</a>
+        {% if email.recipient_user == user %}
+            <div class="info-note">
+                💡 Это письмо адресовано вам. Оно переместится в "Прочитанные" после просмотра.
+            </div>
+        {% elif email.sender_user == user %}
+            <div class="info-note">
+                📤 Это письмо отправлено вами. Оно находится в папке "Отправленные".
+            </div>
+        {% endif %}
+        
+        <a href="javascript:history.back()" class="back-link">← Назад</a>
     </div>
 {% endblock %}
