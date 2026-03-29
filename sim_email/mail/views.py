@@ -21,44 +21,59 @@ class SignUpView(CreateView):
 
 @login_required
 def inbox(request):
-    """Непрочитанные письма (письма, где пользователь - получатель)"""
     emails = Email.objects.filter(
         recipient_user=request.user, folder="unread"
     ).order_by("-created_at")
     paginator = Paginator(emails, 9)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-    return render(
-        request, "mail/inbox.html", {"page_obj": page_obj, "active_tab": "inbox"}
-    )
+    page_obj = paginator.get_page(request.GET.get("page"))
+    context = {
+        "page_obj": page_obj,
+        "active_tab": "inbox",
+        "page_title": "📬 Непрочитанные письма",
+        "card_class": "card-unread",
+        "show_archive_btn": True,
+        "show_trash_btn": True,
+        "empty_message": "Нет непрочитанных писем",
+    }
+    return render(request, "mail/email_list.html", context)
 
 
 @login_required
 def read_emails(request):
-    """Прочитанные письма (письма, где пользователь - получатель)"""
     emails = Email.objects.filter(recipient_user=request.user, folder="read").order_by(
         "-created_at"
     )
     paginator = Paginator(emails, 9)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-    return render(
-        request, "mail/read.html", {"page_obj": page_obj, "active_tab": "read"}
-    )
+    page_obj = paginator.get_page(request.GET.get("page"))
+    context = {
+        "page_obj": page_obj,
+        "active_tab": "read",
+        "page_title": "✓ Прочитанные письма",
+        "card_class": "",
+        "show_archive_btn": True,
+        "show_trash_btn": True,
+        "empty_message": "Нет прочитанных писем",
+    }
+    return render(request, "mail/email_list.html", context)
 
 
 @login_required
 def sent_emails(request):
-    """Отправленные письма (письма, где пользователь - отправитель)"""
     emails = Email.objects.filter(sender_user=request.user, folder="sent").order_by(
         "-created_at"
     )
     paginator = Paginator(emails, 9)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-    return render(
-        request, "mail/sent.html", {"page_obj": page_obj, "active_tab": "sent"}
-    )
+    page_obj = paginator.get_page(request.GET.get("page"))
+    context = {
+        "page_obj": page_obj,
+        "active_tab": "sent",
+        "page_title": "📤 Отправленные письма",
+        "card_class": "",
+        "show_archive_btn": True,
+        "show_trash_btn": True,
+        "empty_message": "Нет отправленных писем",
+    }
+    return render(request, "mail/email_list.html", context)
 
 
 @login_required
@@ -126,8 +141,65 @@ def view_email(request, email_id):
 
 
 @login_required
+def archive_emails(request):
+    emails = (
+        Email.objects.filter(folder="archive")
+        .filter(
+            models.Q(recipient_user=request.user) | models.Q(sender_user=request.user)
+        )
+        .order_by("-created_at")
+    )
+    paginator = Paginator(emails, 9)
+    page_obj = paginator.get_page(request.GET.get("page"))
+    context = {
+        "page_obj": page_obj,
+        "active_tab": "archive",
+        "page_title": "📦 Архив",
+        "card_class": "card-archive",
+        "show_restore_archive_btn": True,
+        "show_trash_btn": True,
+        "empty_message": "Архив пуст",
+    }
+    return render(request, "mail/email_list.html", context)
+
+
+@login_required
+def move_to_archive(request, email_id):
+    """Переместить письмо в архив (для текущего пользователя)"""
+    email = get_object_or_404(Email, id=email_id)
+    if email.recipient_user == request.user or email.sender_user == request.user:
+        if email.folder != "archive":
+            email.folder = "archive"
+            email.save()
+            messages.success(request, "Письмо перемещено в архив")
+        else:
+            messages.info(request, "Письмо уже в архиве")
+    else:
+        messages.error(request, "Вы не можете архивировать это письмо")
+    next_url = request.META.get("HTTP_REFERER", "mail:inbox")
+    return redirect(next_url)
+
+
+@login_required
+def restore_from_archive(request, email_id):
+    """Восстановить письмо из архива"""
+    email = get_object_or_404(Email, id=email_id, folder="archive")
+    if email.recipient_user == request.user or email.sender_user == request.user:
+        if email.recipient_user == request.user:
+            email.folder = "read"  # для получателя – в прочитанные
+            email.is_read = True
+        elif email.sender_user == request.user:
+            email.folder = "sent"  # для отправителя – в отправленные
+            email.is_read = True
+        email.save()
+        messages.success(request, "Письмо восстановлено из архива")
+    else:
+        messages.error(request, "Вы не можете восстановить это письмо")
+    return redirect("mail:archive")
+
+
+@login_required
 def trash_emails(request):
-    """Корзина – письма, удалённые текущим пользователем"""
     emails = (
         Email.objects.filter(folder="trash")
         .filter(
@@ -136,11 +208,17 @@ def trash_emails(request):
         .order_by("-created_at")
     )
     paginator = Paginator(emails, 9)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-    return render(
-        request, "mail/trash.html", {"page_obj": page_obj, "active_tab": "trash"}
-    )
+    page_obj = paginator.get_page(request.GET.get("page"))
+    context = {
+        "page_obj": page_obj,
+        "active_tab": "trash",
+        "page_title": "🗑️ Корзина",
+        "card_class": "card-trash",
+        "show_restore_trash_btn": True,
+        "show_delete_forever_btn": True,
+        "empty_message": "Корзина пуста",
+    }
+    return render(request, "mail/email_list.html", context)
 
 
 @login_required
@@ -194,52 +272,3 @@ def delete_forever(request, email_id):
 
     next_url = request.META.get("HTTP_REFERER", "mail:inbox")
     return redirect(next_url)
-
-
-@login_required
-def archive_emails(request):
-    """Архив – письма, помещённые в архив текущим пользователем"""
-    emails = Email.objects.filter(
-        folder='archive'
-    ).filter(
-        models.Q(recipient_user=request.user) | models.Q(sender_user=request.user)
-    ).order_by('-created_at')
-    paginator = Paginator(emails, 9)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request, 'mail/archive.html', {'page_obj': page_obj, 'active_tab': 'archive'})
-
-
-@login_required
-def move_to_archive(request, email_id):
-    """Переместить письмо в архив (для текущего пользователя)"""
-    email = get_object_or_404(Email, id=email_id)
-    if email.recipient_user == request.user or email.sender_user == request.user:
-        if email.folder != "archive":
-            email.folder = "archive"
-            email.save()
-            messages.success(request, "Письмо перемещено в архив")
-        else:
-            messages.info(request, "Письмо уже в архиве")
-    else:
-        messages.error(request, "Вы не можете архивировать это письмо")
-    next_url = request.META.get("HTTP_REFERER", "mail:inbox")
-    return redirect(next_url)
-
-
-@login_required
-def restore_from_archive(request, email_id):
-    """Восстановить письмо из архива"""
-    email = get_object_or_404(Email, id=email_id, folder="archive")
-    if email.recipient_user == request.user or email.sender_user == request.user:
-        if email.recipient_user == request.user:
-            email.folder = "read"  # для получателя – в прочитанные
-            email.is_read = True
-        elif email.sender_user == request.user:
-            email.folder = "sent"  # для отправителя – в отправленные
-            email.is_read = True
-        email.save()
-        messages.success(request, "Письмо восстановлено из архива")
-    else:
-        messages.error(request, "Вы не можете восстановить это письмо")
-    return redirect("mail:archive")

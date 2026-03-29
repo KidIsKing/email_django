@@ -1,0 +1,82 @@
+{% extends 'mail/base.html' %}
+
+{% block content %}
+<div class="header-with-button">
+    <h2>{{ page_title }}</h2>
+    <a href="{% url 'mail:compose' %}" class="add-button">+</a>
+</div>
+
+{% if page_obj %}
+    <div class="emails-grid">
+        {% for email in page_obj %}
+            <div class="email-card {{ card_class }}">
+                <a href="{% url 'mail:view_email' email.id %}" style="text-decoration: none; color: inherit; display: block;">
+                    <div class="email-sender">📤 {{ email.sender|truncatechars:30 }}</div>
+                    <div class="email-recipient">📥 {{ email.recipient|truncatechars:30 }}</div>
+                    <div class="email-subject">📌 {{ email.subject|truncatechars:40 }}</div>
+                    <div class="email-body">{{ email.body|truncatechars:50 }}</div>
+                    <div class="email-date">{{ email.created_at|date:"d.m.Y H:i" }}</div>
+                </a>
+                <div class="action-icons">
+                    {% if show_archive_btn %}
+                        <form method="post" action="{% url 'mail:move_to_archive' email.id %}">
+                            {% csrf_token %}
+                            <button type="submit" title="Архивировать">📦</button>
+                        </form>
+                    {% endif %}
+                    {% if show_trash_btn %}
+                        <form method="post" action="{% url 'mail:move_to_trash' email.id %}">
+                            {% csrf_token %}
+                            <button type="submit" title="Удалить">🗑️</button>
+                        </form>
+                    {% endif %}
+                    {% if show_restore_archive_btn %}
+                        <form method="post" action="{% url 'mail:restore_from_archive' email.id %}">
+                            {% csrf_token %}
+                            <button type="submit" title="Восстановить из архива">📂 Восстановить</button>
+                        </form>
+                    {% endif %}
+                    {% if show_restore_trash_btn %}
+                        <form method="post" action="{% url 'mail:restore' email.id %}">
+                            {% csrf_token %}
+                            <button type="submit" title="Восстановить из корзины">↩️ Восстановить</button>
+                        </form>
+                    {% endif %}
+                    {% if show_delete_forever_btn %}
+                        <form method="post" action="{% url 'mail:delete_forever' email.id %}">
+                            {% csrf_token %}
+                            <button type="submit" title="Удалить навсегда">🗑️❌</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Пагинация (встроенная, без include) -->
+    {% if page_obj.has_other_pages %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page=1">« Первая</a>
+            <a href="?page={{ page_obj.previous_page_number }}">‹ Предыдущая</a>
+        {% else %}
+            <span class="disabled">« Первая</span>
+            <span class="disabled">‹ Предыдущая</span>
+        {% endif %}
+        <span class="current">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Следующая ›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">Последняя »</a>
+        {% else %}
+            <span class="disabled">Следующая ›</span>
+            <span class="disabled">Последняя »</span>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+{% else %}
+    <div class="empty-state">
+        <p>{{ empty_message }}</p>
+    </div>
+{% endif %}
+{% endblock %}
