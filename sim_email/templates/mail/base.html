@@ -117,10 +117,6 @@
             margin: 0 5px;
         }
         
-        .login-links a:hover {
-            text-decoration: underline;
-        }
-        
         .main-content {
             flex: 1;
             overflow-y: auto;
@@ -147,26 +143,19 @@
             color: #999;
         }
         
-        /* Стили для скроллбара */
+        /* скроллбары */
         .sidebar-top::-webkit-scrollbar,
         .main-content::-webkit-scrollbar {
             width: 6px;
         }
-        
         .sidebar-top::-webkit-scrollbar-track,
         .main-content::-webkit-scrollbar-track {
             background: #f1f1f1;
         }
-        
         .sidebar-top::-webkit-scrollbar-thumb,
         .main-content::-webkit-scrollbar-thumb {
             background: #c1c1c1;
             border-radius: 3px;
-        }
-        
-        .sidebar-top::-webkit-scrollbar-thumb:hover,
-        .main-content::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
         }
     </style>
 </head>
@@ -175,11 +164,11 @@
         <div class="sidebar">
             <div class="sidebar-top">
                 <h1>📧 Моя почта</h1>
-                
                 <ul class="nav-menu">
                     <li><a href="{% url 'mail:inbox' %}" class="{% if active_tab == 'inbox' %}active{% endif %}">📬 Непрочитанные</a></li>
                     <li><a href="{% url 'mail:read' %}" class="{% if active_tab == 'read' %}active{% endif %}">✓ Прочитанные</a></li>
                     <li><a href="{% url 'mail:sent' %}" class="{% if active_tab == 'sent' %}active{% endif %}">📤 Отправленные</a></li>
+                    <li><a href="{% url 'mail:trash' %}" class="{% if active_tab == 'trash' %}active{% endif %}">🗑️ Корзина</a></li>
                 </ul>
             </div>
             

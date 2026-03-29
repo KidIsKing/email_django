@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db import models
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
@@ -122,3 +123,74 @@ def view_email(request, email_id):
         messages.success(request, "Письмо отмечено как прочитанное")
 
     return render(request, "mail/view_email.html", {"email": email})
+
+
+@login_required
+def trash_emails(request):
+    """Корзина – письма, удалённые текущим пользователем"""
+    emails = (
+        Email.objects.filter(folder="trash")
+        .filter(
+            models.Q(recipient_user=request.user) | models.Q(sender_user=request.user)
+        )
+        .order_by("-created_at")
+    )
+    paginator = Paginator(emails, 9)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+    return render(
+        request, "mail/trash.html", {"page_obj": page_obj, "active_tab": "trash"}
+    )
+
+
+@login_required
+def move_to_trash(request, email_id):
+    """Переместить письмо в корзину (для текущего пользователя)"""
+    email = get_object_or_404(Email, id=email_id)
+    # Проверяем, что пользователь владеет этим письмом
+    if email.recipient_user == request.user or email.sender_user == request.user:
+        if email.folder != "trash":
+            email.folder = "trash"
+            email.save()
+            messages.success(request, "Письмо перемещено в корзину")
+        else:
+            messages.info(request, "Письмо уже в корзине")
+    else:
+        messages.error(request, "Вы не можете удалить это письмо")
+
+    next_url = request.META.get("HTTP_REFERER", "mail:inbox")
+    return redirect(next_url)
+
+
+@login_required
+def restore_from_trash(request, email_id):
+    """Восстановить письмо из корзины"""
+    email = get_object_or_404(Email, id=email_id, folder="trash")
+    if email.recipient_user == request.user or email.sender_user == request.user:
+        # Восстанавливаем в прочитанные (если письмо было для получателя)
+        # или в отправленные (если письмо было отправителя)
+        if email.recipient_user == request.user:
+            email.folder = "read"
+            email.is_read = True
+        elif email.sender_user == request.user:
+            email.folder = "sent"
+            email.is_read = True
+        email.save()
+        messages.success(request, "Письмо восстановлено")
+    else:
+        messages.error(request, "Вы не можете восстановить это письмо")
+    return redirect("mail:trash")
+
+
+@login_required
+def delete_forever(request, email_id):
+    """Удалить письмо навсегда"""
+    email = get_object_or_404(Email, id=email_id)
+    if email.recipient_user == request.user or email.sender_user == request.user:
+        email.delete()
+        messages.success(request, "Письмо удалено навсегда")
+    else:
+        messages.error(request, "Вы не можете удалить это письмо")
+
+    next_url = request.META.get("HTTP_REFERER", "mail:inbox")
+    return redirect(next_url)

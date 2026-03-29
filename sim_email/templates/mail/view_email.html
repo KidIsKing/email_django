@@ -9,28 +9,14 @@
             padding: 25px;
             margin-top: 20px;
         }
-        
         .email-header {
             border-bottom: 2px solid #f0f0f0;
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
-        
-        .email-info {
-            margin-bottom: 15px;
-        }
-        
-        .email-label {
-            font-weight: bold;
-            color: #555;
-            width: 100px;
-            display: inline-block;
-        }
-        
-        .email-value {
-            color: #333;
-        }
-        
+        .email-info { margin-bottom: 15px; }
+        .email-label { font-weight: bold; color: #555; width: 100px; display: inline-block; }
+        .email-value { color: #333; }
         .email-body {
             background: #f9f9f9;
             padding: 20px;
@@ -39,18 +25,13 @@
             line-height: 1.6;
             white-space: pre-wrap;
         }
-        
         .back-link {
             display: inline-block;
             margin-top: 20px;
             color: #007bff;
             text-decoration: none;
         }
-        
-        .back-link:hover {
-            text-decoration: underline;
-        }
-        
+        .back-link:hover { text-decoration: underline; }
         .read-badge {
             display: inline-block;
             background: #28a745;
@@ -60,22 +41,34 @@
             font-size: 12px;
             margin-left: 10px;
         }
-        
-        .unread-badge {
-            background: #ffc107;
-            color: #333;
-        }
-        
+        .unread-badge { background: #ffc107; color: #333; }
         .info-note {
             background: #e3f2fd;
             padding: 10px;
             border-radius: 5px;
-            margin-top: 20px;
+            margin: 20px 0 10px;
             font-size: 13px;
             color: #0056b3;
         }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .action-buttons button {
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .btn-trash { background: #dc3545; color: white; }
+        .btn-restore { background: #28a745; color: white; }
+        .btn-delete { background: #6c757d; color: white; }
+        .btn-trash:hover { background: #c82333; }
+        .btn-restore:hover { background: #218838; }
     </style>
-    
+
     <div class="email-detail">
         <div class="email-header">
             <h2 style="margin: 0;">{{ email.subject }}</h2>
@@ -85,36 +78,48 @@
                 <span class="read-badge unread-badge">● Новое</span>
             {% endif %}
         </div>
-        
+
         <div class="email-info">
             <div class="email-label">Отправитель:</div>
             <div class="email-value">{{ email.sender }}</div>
         </div>
-        
         <div class="email-info">
             <div class="email-label">Получатель:</div>
             <div class="email-value">{{ email.recipient }}</div>
         </div>
-        
         <div class="email-info">
             <div class="email-label">Дата:</div>
             <div class="email-value">{{ email.created_at|date:"d.m.Y H:i" }}</div>
         </div>
-        
+
         <div class="email-body">
             {{ email.body|linebreaks }}
         </div>
-        
+
         {% if email.recipient_user == user %}
-            <div class="info-note">
-                💡 Это письмо адресовано вам. Оно переместится в "Прочитанные" после просмотра.
-            </div>
+            <div class="info-note">💡 Это письмо адресовано вам.</div>
         {% elif email.sender_user == user %}
-            <div class="info-note">
-                📤 Это письмо отправлено вами. Оно находится в папке "Отправленные".
-            </div>
+            <div class="info-note">📤 Это письмо отправлено вами.</div>
         {% endif %}
-        
+
+        <div class="action-buttons">
+            {% if email.folder != 'trash' %}
+                <form method="post" action="{% url 'mail:move_to_trash' email.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-trash">🗑️ В корзину</button>
+                </form>
+            {% else %}
+                <form method="post" action="{% url 'mail:restore' email.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-restore">↩️ Восстановить</button>
+                </form>
+                <form method="post" action="{% url 'mail:delete_forever' email.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-delete">🗑️❌ Удалить навсегда</button>
+                </form>
+            {% endif %}
+        </div>
+
         <a href="javascript:history.back()" class="back-link">← Назад</a>
     </div>
 {% endblock %}
